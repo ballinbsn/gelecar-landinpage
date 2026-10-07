@@ -224,12 +224,11 @@ function GcxUnit(p) {
   var brandOk = idx.names.indexOf(gcxCanonBrand(u.brand)) >= 0;
   var e = function (f) { return errs[i + '.' + f] || ''; };
   var missing = gcxMissing(u);
+  var man = !!u.manual || (!!u.brand && idx.names.indexOf(u.brand) < 0) || (!!u.model && models.indexOf(u.model) < 0);
   var nx = function (fields) { return fields.indexOf(missing) >= 0 ? '1' : undefined; };
 
   function onBrand(v) {
-    var canon = gcxCanonBrand(v);
-    var known = idx.names.indexOf(canon) >= 0;
-    set(i, { brand: known ? canon : v, model: canon !== gcxCanonBrand(u.brand) ? '' : u.model }, ['brand', 'model']);
+    set(i, { brand: v, model: v !== u.brand ? '' : u.model }, ['brand', 'model']);
   }
   function onModel(v) {
     var hit = gcxModelCats(u.brand, v);
@@ -276,22 +275,38 @@ function GcxUnit(p) {
                 id: 'gcx-brand-' + i,
                 label: 'Marca',
                 error: e('brand'),
-                control: [
-                  O.jsx('input', { key: 'i', id: 'gcx-brand-' + i, className: 'gcx-input', list: 'gcx-brands', value: u.brand, placeholder: 'Ex.: Volkswagen', autoComplete: 'off', autoCapitalize: 'words', enterKeyHint: 'next', 'aria-invalid': !!e('brand'), 'aria-describedby': e('brand') ? 'gcx-brand-' + i + '-err' : undefined, onChange: function (ev) { onBrand(ev.target.value); } }),
-                  i === 0 || true ? O.jsx('datalist', { key: 'd', id: 'gcx-brands', children: idx.names.map(function (n) { return O.jsx('option', { value: n }, n); }) }) : null,
-                ],
+                control: man
+                  ? O.jsx('input', { id: 'gcx-brand-' + i, className: 'gcx-input', value: u.brand, maxLength: 80, placeholder: 'Ex.: Volkswagen', autoComplete: 'off', autoCapitalize: 'words', enterKeyHint: 'next', 'aria-invalid': !!e('brand'), 'aria-describedby': e('brand') ? 'gcx-brand-' + i + '-err' : undefined, onChange: function (ev) { set(i, { brand: ev.target.value }, ['brand']); } })
+                  : O.jsxs('select', {
+                      id: 'gcx-brand-' + i,
+                      className: 'gcx-input gcx-select',
+                      value: u.brand,
+                      'aria-invalid': !!e('brand'),
+                      'aria-describedby': e('brand') ? 'gcx-brand-' + i + '-err' : undefined,
+                      onChange: function (ev) { onBrand(ev.target.value); },
+                      children: [O.jsx('option', { value: '', children: 'Ex.: Volkswagen' }, '')].concat(idx.names.map(function (n) { return O.jsx('option', { value: n, children: n }, n); })),
+                    }),
               }),
               gcxField({
                 id: 'gcx-model-' + i,
                 label: 'Modelo',
                 error: e('model'),
-                control: [
-                  O.jsx('input', { key: 'i', id: 'gcx-model-' + i, className: 'gcx-input', list: 'gcx-models-' + i, value: u.model, placeholder: 'Ex.: Saveiro', autoComplete: 'off', autoCapitalize: 'words', enterKeyHint: 'next', 'aria-invalid': !!e('model'), 'aria-describedby': e('model') ? 'gcx-model-' + i + '-err' : undefined, onChange: function (ev) { onModel(ev.target.value); } }),
-                  O.jsx('datalist', { key: 'd', id: 'gcx-models-' + i, children: models.map(function (n) { return O.jsx('option', { value: n }, n); }) }),
-                ],
+                control: man
+                  ? O.jsx('input', { id: 'gcx-model-' + i, className: 'gcx-input', value: u.model, maxLength: 80, placeholder: 'Ex.: Saveiro', autoComplete: 'off', autoCapitalize: 'words', enterKeyHint: 'next', 'aria-invalid': !!e('model'), 'aria-describedby': e('model') ? 'gcx-model-' + i + '-err' : undefined, onChange: function (ev) { set(i, { model: ev.target.value }, ['model']); } })
+                  : O.jsxs('select', {
+                      id: 'gcx-model-' + i,
+                      className: 'gcx-input gcx-select',
+                      value: u.model,
+                      disabled: !u.brand,
+                      'aria-invalid': !!e('model'),
+                      'aria-describedby': e('model') ? 'gcx-model-' + i + '-err' : undefined,
+                      onChange: function (ev) { onModel(ev.target.value); },
+                      children: [O.jsx('option', { value: '', children: u.brand ? 'Ex.: Saveiro' : 'Escolha a marca primeiro' }, '')].concat(models.map(function (n) { return O.jsx('option', { value: n, children: n }, n); })),
+                    }),
               }),
             ],
           }),
+          O.jsx('button', { type: 'button', className: 'gcx-link', onClick: function () { set(i, { manual: !man, brand: '', model: '' }, ['brand', 'model']); }, children: man ? 'Voltar à lista de veículos' : 'Não encontrou? Informe manualmente' }),
           gcxField({
             id: 'gcx-year-' + i,
             label: 'Ano',
