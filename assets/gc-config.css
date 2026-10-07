@@ -152,3 +152,6 @@
 @media(prefers-reduced-motion:reduce){.gcx-compact,.gcx-done,.gcx-open{animation:none}.gcx-collapse{transition:none}}
 
 .gcx-select:disabled{opacity:.55;cursor:not-allowed;background-color:hsl(var(--secondary))}
+
+/* primeiro banner do carrossel: exibe inteiro (proporção 0,855), sem cortar o texto */
+.aspect-\[4\/5\] img[src*="gelacar-ram-personalizacao"]{object-fit:contain;background:#fff}
